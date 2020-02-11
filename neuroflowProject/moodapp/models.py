@@ -18,9 +18,33 @@ class Mood(models.Model):
     mood_rating = models.IntegerField(null=False, blank=False)
     mood_owner = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
 
+    def calculate_longest_streak(mood_owner):
+        """
+        Calculate the longest streak based off all of the mood_owner's moods
+        """
+        moods = Mood.objects.filter(mood_owner=mood_owner).order_by('-log_date')
+        moods_length = len(moods)
+        overall_streak_counter = 0
+        local_streak_counter = 1
+        starting_position = 1
+
+        if moods_length > 1:
+            for i in range(starting_position, moods_length):
+                delta = moods[i-1].log_date - moods[i].log_date
+                if delta.days == 1:
+                    local_streak_counter += 1
+                    if local_streak_counter > overall_streak_counter:
+                        overall_streak_counter = local_streak_counter
+                else:
+                    if local_streak_counter > overall_streak_counter:
+                        overall_streak_counter = local_streak_counter
+                    local_streak_counter = 1
+
+        return overall_streak_counter
+
     def get_streak_from_date(mood_owner, log_date):
         """
-        Gets the current streak for a mood_owner, based off the current date today.
+        Gets the current streak for a mood_owner, based off the given date.
         """
         if type(log_date).__name__ != 'date':
             raise Exception('The log_date parameter must be a date type')
