@@ -29,7 +29,9 @@ class Mood(models.Model):
         local_streak_counter = 1
         starting_position = 1
 
-        if moods_length > 1:
+        if moods_length == 1:
+            overall_streak_counter += 1
+        elif moods_length > 1:
             for i in range(starting_position, moods_length):
                 delta = moods[i-1].log_date - moods[i].log_date
                 if delta.days == 1:

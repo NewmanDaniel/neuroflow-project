@@ -19,9 +19,10 @@ from moodapp import views
 from django.contrib import admin
 from django.urls import path
 
-router = routers.DefaultRouter()
+router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'users', views.UserViewSet)
 router.register(r'groups', views.GroupViewSet)
+router.register(r'mood', views.MoodViewSet, basename='mood')
 
 urlpatterns = [
     path('', include(router.urls)),
