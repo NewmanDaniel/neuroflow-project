@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import date
+from scipy import stats
 
 # Create your models here.
 
@@ -20,7 +21,7 @@ class Mood(models.Model):
 
     def calculate_longest_streak(mood_owner):
         """
-        Calculate the longest streak based off all of the mood_owner's moods
+        Calculate the longest streak based off the mood_owner's moods
         """
         moods = Mood.objects.filter(mood_owner=mood_owner).order_by('-log_date')
         moods_length = len(moods)
@@ -75,4 +76,26 @@ class Mood(models.Model):
                 break
         return streak_counter
 
+    def calculate_streak_percentile(mood_owner):
+        """
+        Using the specified mood_owner's longest streak, compares the mood owner longest streak
+        against other mood owners' longest streaks and places them in a percentile
 
+
+        """
+        # Get the mood owner's longest streaks
+        if not User.objects.filter(id=mood_owner):
+            raise Exception('mood_owner must match a user id in the database')
+
+        mood_owner_longest_streak = Mood.calculate_longest_streak(mood_owner)
+
+        # Get the other user's longest streaks to compare against
+        other_users_longest_streaks = []
+        other_users = User.objects.filter(is_staff=False).exclude(id=mood_owner)
+        for user in other_users:
+            other_users_longest_streaks.append(Mood.calculate_longest_streak(user.id))
+
+        other_users_longest_streaks.sort()
+        percentile = stats.percentileofscore(other_users_longest_streaks, mood_owner_longest_streak)
+
+        return percentile
